@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registro de Aventurero</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+
+body{
+    margin:0;
+    font-family:'Cinzel', serif;
+    background:#1a1410;
+}
+
+/* HOJA */
+.sheet{
+    max-width:1100px;
+    margin:20px auto;
+    background:#f4e4c1;
+    padding:20px;
+    border-radius:12px;
+    border:4px solid #caa85c;
+    box-shadow:0 0 40px rgba(0,0,0,0.7);
+}
+
+h1{text-align:center;color:#5a3b1a;}
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.card{
+    background:#fff3d6;
+    padding:12px;
+    border-radius:10px;
+    border:2px solid #caa85c;
+}
+
+/* IMAGEN */
+.portrait{
+    height:450px;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    overflow:hidden;
+}
+.portrait img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+/* INPUTS */
+input, textarea{
+    width:100%;
+    margin-top:5px;
+    padding:6px;
+    border:1px solid #caa85c;
+    background:#fff8e6;
+}
+
+/* VIDA */
+.hp{
+    height:20px;
+    background:#caa85c;
+    border-radius:10px;
+    overflow:hidden;
+    position:relative;
+}
+.hpFill{
+    height:100%;
+    background:#8b0000;
+}
+.hpText{
+    position:absolute;
+    width:100%;
+    text-align:center;
+    font-size:12px;
+}
+
+/* STATS */
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:5px;
+}
+
+/* MAGIA */
+.magic{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+}
+.slot{
+    border:1px solid #caa85c;
+    padding:5px;
+    text-align:center;
+}
+
+button{
+    width:100%;
+    padding:6px;
+    background:#caa85c;
+    border:none;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sheet">
+<h1>📜 Registro de Aventurero</h1>
+
+<!-- PERFILES -->
+<div class="card">
+<h2>Perfiles</h2>
+<input id="nombrePerfil" placeholder="Nombre del personaje">
+<button onclick="guardarPerfil()">Guardar</button>
+<select id="listaPerfiles" onchange="cargarPerfil()"></select>
+<button onclick="eliminarPerfil()">Eliminar</button>
+</div>
+
+<div class="grid">
+
+<!-- IMAGEN -->
+<div class="card">
+<h2>Retrato</h2>
+<div class="portrait" id="portraitBox">Sin imagen</div>
+<input type="file" id="imgInput">
+<textarea id="descripcion" placeholder="Descripción"></textarea>
+</div>
+
+<!-- INFO -->
+<div class="card">
+<h2>Información</h2>
+<input id="nombre" placeholder="Nombre">
+<input id="clase" placeholder="Clase">
+<input id="raza" placeholder="Raza">
+<input id="nivel" type="number" placeholder="Nivel">
+<input id="xp" type="number" placeholder="XP">
+</div>
+
+<!-- VIDA -->
+<div class="card">
+<h2>Vida</h2>
+<input id="hp" placeholder="HP">
+<input id="hpMax" placeholder="HP Máx">
+<div class="hp">
+<div id="hpFill" class="hpFill"></div>
+<div id="hpText" class="hpText"></div>
+</div>
+</div>
+
+<!-- STATS -->
+<div class="card">
+<h2>Atributos</h2>
+<div class="stats">
+<input id="str" placeholder="STR">
+<input id="dex" placeholder="DEX">
+<input id="con" placeholder="CON">
+<input id="int" placeholder="INT">
+<input id="wis" placeholder="WIS">
+<input id="cha" placeholder="CHA">
+</div>
+</div>
+
+<!-- MAGIA -->
+<div class="card">
+<h2>Magia</h2>
+<div class="magic" id="magic"></div>
+<button onclick="descanso()">Descanso</button>
+
+<textarea id="hechizosConocidos" placeholder="Hechizos conocidos"></textarea>
+<textarea id="hechizosPreparados" placeholder="Hechizos preparados"></textarea>
+</div>
+
+<!-- INVENTARIO -->
+<div class="card">
+<h2>Inventario</h2>
+<textarea id="inventario"></textarea>
+</div>
+
+<!-- RECURSOS -->
+<div class="card">
+<h2>Recursos</h2>
+<textarea id="recursos"></textarea>
+</div>
+
+<!-- DATOS -->
+<div class="card">
+<h2>Datos Recolectados</h2>
+<textarea id="datos"></textarea>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let perfilActual="";
+
+/* ===== DATOS ===== */
+function obtenerDatos(){
+let d={};
+document.querySelectorAll("input,textarea").forEach(e=>{
+if(e.id)d[e.id]=e.value;
+});
+d.img=portraitBox.dataset.img||"";
+return d;
+}
+
+function aplicarDatos(d){
+if(!d)return;
+
+document.querySelectorAll("input,textarea").forEach(e=>{
+if(e.id)e.value=d[e.id]||"";
+});
+
+if(d.img){
+portraitBox.innerHTML=`<img src="${d.img}">`;
+portraitBox.dataset.img=d.img;
+}else{
+portraitBox.innerHTML="Sin imagen";
+portraitBox.dataset.img="";
+}
+
+updateAll();
+}
+
+/* ===== PERFILES ===== */
+function guardarPerfil(){
+let n=nombrePerfil.value.trim();
+if(!n)return;
+perfilActual=n;
+localStorage.setItem("perfil_"+n,JSON.stringify(obtenerDatos()));
+updateList();
+}
+
+function cargarPerfil(){
+let n=listaPerfiles.value;
+if(!n)return;
+perfilActual=n;
+aplicarDatos(JSON.parse(localStorage.getItem("perfil_"+n)));
+}
+
+function eliminarPerfil(){
+let n=listaPerfiles.value;
+if(!n)return;
+localStorage.removeItem("perfil_"+n);
+updateList();
+}
+
+/* ===== LISTA ===== */
+function updateList(){
+listaPerfiles.innerHTML="<option>Seleccionar</option>";
+for(let i=0;i<localStorage.length;i++){
+let k=localStorage.key(i);
+if(k.startsWith("perfil_")){
+let n=k.replace("perfil_","");
+listaPerfiles.innerHTML+=`<option value="${n}">${n}</option>`;
+}
+}
+}
+
+/* ===== AUTO GUARDADO ===== */
+function autoSave(){
+if(!perfilActual)return;
+localStorage.setItem("perfil_"+perfilActual,JSON.stringify(obtenerDatos()));
+}
+
+/* ===== IMAGEN ===== */
+imgInput.onchange=e=>{
+let file=e.target.files[0];
+if(!file)return;
+let r=new FileReader();
+r.onload=()=>{
+portraitBox.innerHTML=`<img src="${r.result}">`;
+portraitBox.dataset.img=r.result;
+autoSave();
+};
+r.readAsDataURL(file);
+};
+
+/* ===== VIDA ===== */
+function hpUpdate(){
+let hp=Number(hp.value)||0;
+let max=Number(hpMax.value)||0;
+hpFill.style.width=(max?hp/max*100:0)+"%";
+hpText.innerText=hp+"/"+max;
+}
+
+/* ===== MAGIA ===== */
+for(let i=1;i<=6;i++){
+magic.innerHTML+=`
+<div class="slot">
+Nivel ${i}
+<div id="d${i}">0/0</div>
+<input id="m${i}">
+<input id="u${i}">
+<button onclick="usar(${i})">Usar</button>
+</div>`;
+}
+
+function usar(n){
+let max=Number(document.getElementById("m"+n).value)||0;
+let used=Number(document.getElementById("u"+n).value)||0;
+if(used<max)document.getElementById("u"+n).value=used+1;
+updateMagia();
+autoSave();
+}
+
+function descanso(){
+for(let i=1;i<=6;i++){
+document.getElementById("u"+i).value=0;
+}
+updateMagia();
+autoSave();
+}
+
+function updateMagia(){
+for(let i=1;i<=6;i++){
+let max=Number(document.getElementById("m"+i).value)||0;
+let used=Number(document.getElementById("u"+i).value)||0;
+document.getElementById("d"+i).innerText=(max-used)+"/"+max;
+}
+}
+
+/* ===== GENERAL ===== */
+function updateAll(){
+hpUpdate();
+updateMagia();
+}
+
+/* ===== EVENTOS ===== */
+document.querySelectorAll("input,textarea").forEach(e=>{
+e.oninput=()=>{
+updateAll();
+autoSave();
+};
+});
+
+/* ===== INIT ===== */
+updateList();
+updateAll();
+
+</script>
+
+</body>
+</html>
