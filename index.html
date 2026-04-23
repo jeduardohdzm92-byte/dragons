@@ -238,11 +238,17 @@ updateAll();
 function guardarPerfil(){
 let n=nombrePerfil.value.trim();
 if(!n)return;
-perfilActual=n;
-localStorage.setItem("perfil_"+n,JSON.stringify(obtenerDatos()));
+
+perfilActual = n;
+
+// Guardar datos
+localStorage.setItem("perfil_" + n, JSON.stringify(obtenerDatos()));
+
+// 👇 GUARDAR ÚLTIMO PERFIL
+localStorage.setItem("ultimoPerfil", n);
+
 updateList();
 }
-
 function cargarPerfil(){
 let n=listaPerfiles.value;
 if(!n)return;
@@ -290,12 +296,27 @@ r.readAsDataURL(file);
 
 /* ===== VIDA ===== */
 function hpUpdate(){
-let hp=Number(hp.value)||0;
-let max=Number(hpMax.value)||0;
-hpFill.style.width=(max?hp/max*100:0)+"%";
-hpText.innerText=hp+"/"+max;
-}
+let hpVal = Number(hp.value) || 0;
+let maxVal = Number(hpMax.value) || 0;
 
+// Evitar cosas absurdas
+if(hpVal < 0) hpVal = 0;
+if(hpVal > maxVal) hpVal = maxVal;
+
+let porcentaje = maxVal ? (hpVal / maxVal) * 100 : 0;
+
+hpFill.style.width = porcentaje + "%";
+hpText.innerText = hpVal + "/" + maxVal;
+
+// Cambiar color dinámico (esto ya es lujo, pero te lo regalo)
+if(porcentaje > 60){
+    hpFill.style.background = "#228B22"; // verde
+}else if(porcentaje > 30){
+    hpFill.style.background = "#e6b800"; // amarillo
+}else{
+    hpFill.style.background = "#8b0000"; // rojo
+}
+}
 /* ===== MAGIA ===== */
 for(let i=1;i<=6;i++){
 magic.innerHTML+=`
@@ -349,7 +370,17 @@ autoSave();
 /* ===== INIT ===== */
 updateList();
 updateAll();
+let ultimo = localStorage.getItem("ultimoPerfil");
 
+if(ultimo){
+    perfilActual = ultimo;
+
+    let datos = localStorage.getItem("perfil_" + ultimo);
+
+    if(datos){
+        aplicarDatos(JSON.parse(datos));
+    }
+}
 </script>
 
 </body>
