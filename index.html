@@ -201,7 +201,29 @@ button{
 
 </div>
 </div>
+<!-- MASCOTAS -->
+<div class="card">
+<h2>🐾 Mascotas y Compañeros</h2>
 
+<input id="petNombre" placeholder="Nombre">
+<input id="petTipo" placeholder="Tipo (lobo, dragón, etc)">
+<input id="petNivel" type="number" placeholder="Nivel">
+
+<h3>Vida</h3>
+<input id="petHp" placeholder="HP">
+<input id="petHpMax" placeholder="HP Máx">
+
+<div class="hp">
+<div id="petHpFill" class="hpFill"></div>
+<div id="petHpText" class="hpText"></div>
+</div>
+
+<h3>Habilidades</h3>
+<textarea id="petHabilidades"></textarea>
+
+<h3>Notas</h3>
+<textarea id="petNotas"></textarea>
+</div>
 <script>
 
 let perfilActual="";
@@ -299,6 +321,27 @@ function hpUpdate(){
 let hpVal = Number(hp.value) || 0;
 let maxVal = Number(hpMax.value) || 0;
 
+function petHpUpdate(){
+let hpVal = Number(petHp.value) || 0;
+let maxVal = Number(petHpMax.value) || 0;
+
+if(hpVal < 0) hpVal = 0;
+if(hpVal > maxVal) hpVal = maxVal;
+
+let porcentaje = maxVal ? (hpVal / maxVal) * 100 : 0;
+
+petHpFill.style.width = porcentaje + "%";
+petHpText.innerText = hpVal + "/" + maxVal;
+
+if(porcentaje > 60){
+    petHpFill.style.background = "#228B22";
+}else if(porcentaje > 30){
+    petHpFill.style.background = "#e6b800";
+}else{
+    petHpFill.style.background = "#8b0000";
+}
+}
+
 // Evitar cosas absurdas
 if(hpVal < 0) hpVal = 0;
 if(hpVal > maxVal) hpVal = maxVal;
@@ -357,6 +400,7 @@ document.getElementById("d"+i).innerText=(max-used)+"/"+max;
 function updateAll(){
 hpUpdate();
 updateMagia();
+petHpUpdate(); // ← lo único que agregas
 }
 
 /* ===== EVENTOS ===== */
